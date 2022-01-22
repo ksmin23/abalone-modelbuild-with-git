@@ -14,7 +14,8 @@ import boto3
 import sagemaker
 import sagemaker.session
 
-from sagemaker.estimator import Estimator
+# from sagemaker.estimator import Estimator
+from sagemaker.xgboost.estimator import XGBoost
 from sagemaker.inputs import TrainingInput
 from sagemaker.model_metrics import (
     MetricsSource,
@@ -158,31 +159,52 @@ def get_pipeline(
 
     # training step for generating model artifacts
     model_path = f"s3://{sagemaker_session.default_bucket()}/{base_job_prefix}/AbaloneTrain"
-    image_uri = sagemaker.image_uris.retrieve(
-        framework="xgboost",
-        region=region,
-        version="1.0-1",
-        py_version="py3",
-        instance_type=training_instance_type,
-    )
-    xgb_train = Estimator(
-        image_uri=image_uri,
+    # image_uri = sagemaker.image_uris.retrieve(
+    #     framework="xgboost",
+    #     region=region,
+    #     version="1.0-1",
+    #     py_version="py3",
+    #     instance_type=training_instance_type,
+    # )
+    # xgb_train = Estimator(
+    #     image_uri=image_uri,
+    #     instance_type=training_instance_type,
+    #     instance_count=1,
+    #     output_path=model_path,
+    #     base_job_name=f"{base_job_prefix}/abalone-train",
+    #     sagemaker_session=sagemaker_session,
+    #     role=role,
+    # )
+    # xgb_train.set_hyperparameters(
+    #     objective="reg:linear",
+    #     num_round=50,
+    #     max_depth=5,
+    #     eta=0.2,
+    #     gamma=4,
+    #     min_child_weight=6,
+    #     subsample=0.7,
+    #     silent=0,
+    # )
+    hyperparameters = {
+        "objective": "reg:linear",
+        "num_round": 50,
+        "max_depth": 5,
+        "eta": 0.2,
+        "gamma": 4,
+        "min_child_weight": 6,
+        "subsample": 0.7,
+        "silent": 0
+    }
+    xgb_train = XGBoost(
+        entry_point="abalone.py",
+        source_dir=BASE_DIR,
+        framework_version="1.3-1",
+        hyperparameters=hyperparameters,
         instance_type=training_instance_type,
         instance_count=1,
         output_path=model_path,
         base_job_name=f"{base_job_prefix}/abalone-train",
-        sagemaker_session=sagemaker_session,
         role=role,
-    )
-    xgb_train.set_hyperparameters(
-        objective="reg:linear",
-        num_round=50,
-        max_depth=5,
-        eta=0.2,
-        gamma=4,
-        min_child_weight=6,
-        subsample=0.7,
-        silent=0,
     )
     step_train = TrainingStep(
         name="TrainAbaloneModel",
@@ -205,7 +227,8 @@ def get_pipeline(
 
     # processing step for evaluation
     script_eval = ScriptProcessor(
-        image_uri=image_uri,
+        # image_uri=image_uri,
+        image_uri=step_train.properties.AlgorithmSpecification.TrainingImage,
         command=["python3"],
         instance_type=processing_instance_type,
         instance_count=1,
