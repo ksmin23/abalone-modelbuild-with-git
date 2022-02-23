@@ -17,6 +17,12 @@ import pickle as pkl
 import numpy as np
 import sagemaker_xgboost_container.encoder as xgb_encoders
 
+try:
+    import konlpy
+except Exception as ex:
+    import traceback
+    traceback.print_exc()
+    raise ex
 
 def model_fn(model_dir):
     """
@@ -33,6 +39,8 @@ def input_fn(request_body, request_content_type):
     and invokes the `input_fn`.
     Return a DMatrix (an object that can be passed to predict_fn).
     """
+    print("Custom package Installation Test:", konlpy.__version__)
+
     if request_content_type == "application/json":
         print("Recieved content type is json")
         print("input_data is", request_body)

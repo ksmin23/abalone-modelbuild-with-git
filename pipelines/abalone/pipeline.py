@@ -295,7 +295,8 @@ def get_pipeline(
         model_metrics=model_metrics,
         #model=model,
         entry_point="inference.py",
-        source_dir=BASE_DIR
+        source_dir=BASE_DIR,
+        dependencies=[os.path.join(BASE_DIR, 'requirements.txt')]
     )
 
     # condition step for evaluating model quality and branching execution
