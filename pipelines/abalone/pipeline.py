@@ -264,14 +264,14 @@ def get_pipeline(
         property_files=[evaluation_report],
     )
 
-    model = XGBoostModel(
-        model_data=step_train.properties.ModelArtifacts.S3ModelArtifacts,
-        sagemaker_session=sagemaker_session,
-        role=role,
-        entry_point="inference.py",
-        source_dir=BASE_DIR,
-        framework_version="1.3-1"
-    )
+    # model = XGBoostModel(
+    #     model_data=step_train.properties.ModelArtifacts.S3ModelArtifacts,
+    #     sagemaker_session=sagemaker_session,
+    #     role=role,
+    #     entry_point="inference.py",
+    #     source_dir=BASE_DIR,
+    #     framework_version="1.3-1"
+    # )
 
     # register model step that will be conditionally executed
     model_metrics = ModelMetrics(
@@ -293,7 +293,9 @@ def get_pipeline(
         model_package_group_name=model_package_group_name,
         approval_status=model_approval_status,
         model_metrics=model_metrics,
-        model=model
+        #model=model,
+        entry_point="inference.py",
+        source_dir=BASE_DIR
     )
 
     # condition step for evaluating model quality and branching execution
